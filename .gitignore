@@ -1,2 +1,9 @@
 /node_modules/
 npm-debug.log
+/nbproject/private/
+/tools/asphalt.png
+/tools/main.css
+/tools/openshift-online-logo.svg
+/tools/nodejs-logo.svg
+/tools/info.tag
+/tools/favicon.ico

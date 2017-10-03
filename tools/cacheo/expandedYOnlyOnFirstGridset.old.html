@@ -1,0 +1,529 @@
+<!DOCTYPE HTML>
+<html lang="es">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>
+		Untitled Document
+	</title>
+	<link rel="stylesheet" href="api/bootstrap-3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="api/bootstrap-3.2.0/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="api/jquery-ui-1.11.2/jquery-ui.min.css">
+    <link rel="stylesheet" href="main.css">
+    <script src="api/proj4js/dist/proj4.js"></script>
+    <script src="api/jquery-2.1.1/jquery-2.1.1.js"></script>
+    <script src="api/bootstrap-3.2.0/js/bootstrap.min.js"></script>
+    <script src="api/jquery-ui-1.11.2/jquery-ui.min.js"></script>
+</head>
+<body>
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-xs-10 col-xs-offset-1">
+		<div class="panel panel-default">
+		<div class="panel-heading">
+		<h2 class="panel-title">Generador de parametros de borrado y precacheo</h2>
+		</div>
+		<div class="panel-body">
+		<form role="form">
+			<div class=row>
+				<div class="form-group col-xs-11">
+					<label class="sr-only" for="json">JSON</label>
+					<input class="form-control" data-placement="bottom" data-toggle="tooltip" id="json" title="Indique los BBOX" type="text" value='{"bbox":[{"xmin":-6,"ymin":37.5,"xmax":-2,"ymax":42.5,"crs":"urn:ogc:def:crs:EPSG::4326"}]}'/>
+				</div> <!--form-group-->
+				<div class="form-group col-xs-1">
+					<label class="sr-only" for="outputSRS">SRS:</label>
+					<select id="outputSRS" title="Indique el SRS">
+						
+						<option value="urn:ogc:def:crs:EPSG::4258">4258</option>
+						<!--
+						<option value="urn:ogc:def:crs:EPSG::4326">4326</option>
+						-->
+						<option value="urn:ogc:def:crs:EPSG::25828">25828</option>
+						<!--
+						<option value="urn:ogc:def:crs:EPSG::25829">25829</option>
+						-->
+						<option value="urn:ogc:def:crs:EPSG::25830">25830</option>
+						<!--
+						<option value="urn:ogc:def:crs:EPSG::25831">25831</option>
+						-->
+						<option selected="selected" value="urn:ogc:def:crs:EPSG::3857">3857</option>
+					</select>
+				</div> <!--form-group-->
+			</div> <!--row-->
+			<div class="row">
+
+				<div class="form-group col-xs-1">
+					<label class="sr-only" for="minlevel">Desde el nivel:</label>
+					<select class="select-level" id="minlevel" title="Indique desde que nivel"></select>
+					
+					<label class="sr-only" for="maxlevel">Hasta el nivel:</label>
+					<select class="select-level" id="maxlevel" title="Indique hasta que nivel"></select>
+				</div>
+
+
+				<div class="form-group col-xs-4">
+					<label class="sr-only" for="niveles">Niveles:</label>
+					<div id="niveles" class="niveles"></div>
+					<span class="help-block niveles">Seleccione los niveles</span>
+				</div>
+
+				<div class="form-group col-xs-3">
+					<label class="sr-only" for="layer">Layer:</label>
+					<input class="form-control" id="layer" title="Indique el nombre de la layer" type="text" value="OI.OrthoimageCoverage" />
+				</div>
+
+				<div class="form-group col-xs-3">
+					<label class="sr-only" for="path">Path:</label>
+					<input class="form-control"  id="path" title="Indique la ruta del directorio de la cache" type="text" value="/var/data/gwc" />
+				</div>
+				
+				<div class="form-group col-xs-1">
+					<button class="btn btn-default" id="add" title="Pulse para generar las cadenas de borrado y precacheo" type="button">Add</button>
+				</div>
+			</div> <!--row-->
+
+			
+		</form>
+		</div>
+		</div>
+	</div>
+
+	<div> <!--row-->
+	<div class="row">
+		<div class="col-xs-10 col-xs-offset-1">
+			<div class="row panel panel-default">
+				<div class="panel-heading">
+					<h2 class="panel-title">Borrado</h2>
+				</div>
+				<div class="panel-body">
+					<table id="erase" class="table table-hover hidden">
+						<thead>
+							<tr><th>Parámetros</th></tr>
+						</thead>
+					</table>
+				</div>
+			</div>
+
+			<div class="row panel panel-default">
+				<div class="panel-heading">
+					<h2 class="panel-title">Precacheo</h2>
+				</div>
+				<div class="panel-body">
+					<div class="col-xs-9">
+						<table id="cache" class="table table-hover hidden">
+							<thead>
+								<tr><th>Parámetros</th></tr>
+							</thead>
+						</table>
+					</div>
+					<div class="col-xs-3">
+						<table id="cacheStats" class="table table-hover hidden">
+							<thead>
+								<tr><th>nº Teselas</th><th>Espacio en disco</th><th>Tiempo</th></tr>
+							</thead>
+						</table>
+					</div>
+				</div>
+			</div>
+			</div>
+
+		</div>
+	</div> <!--row-->
+</div> <!--container-->
+
+<script>
+
+        var srsdefs = {};
+
+        /*
+         * proj4 string from spatial reference
+         */
+        //srsdefs["EPSG_4258"] = "+proj=longlat +ellps=GRS80 +no_defs";
+        //srsdefs["EPSG_25828"] = "+proj=utm +zone=28 +ellps=GRS80 +units=m +no_defs";
+        //srsdefs["EPSG_25829"] = "+proj=utm +zone=29 +ellps=GRS80 +units=m +no_defs";
+        //srsdefs["EPSG_25830"] = "+proj=utm +zone=30 +ellps=GRS80 +units=m +no_defs";
+        //srsdefs["EPSG_25831"] = "+proj=utm +zone=31 +ellps=GRS80 +units=m +no_defs";
+        srsdefs["urn:ogc:def:crs:EPSG::3857"] = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs";
+        /*
+         * instead of use the ellipsoid for calculations the sphere is used 
+         * see remarks on http://www.opengis.net/def/crs/EPSG/0/3857 or see the definition in the EPSG database
+         * content of the tag: Uses spherical development of ellipsoidal coordinates. Relative to an ellipsoidal development errors of up to 800 metres in position and 0.7 percent in scale may arise. It is not a recognised geodetic system: see WGS 84 / World Mercator (CRS code 3395).
+         */
+        //defs["EPSG_4326"] = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs";
+        //defs["EPSG_4230"] = "+proj=longlat +ellps=intl +no_defs";
+
+        /* 
+         * WKT from 
+         * http://svn.osgeo.org/geotools/trunk/modules/plugin/epsg-wkt/src/main/resources/org/geotools/referencing/crs/epsg.properties
+         * file header:
+         * Generated from EPSG database version 7.9.0
+         * Sun Oct 16 14:49:47 CEST 2011
+         */
+        
+        srsdefs["urn:ogc:def:crs:EPSG::4258"]  = 'GEOGCS["ETRS89", DATUM["European Terrestrial Reference System 1989", SPHEROID["GRS 1980", 6378137.0, 298.257222101, AUTHORITY["EPSG","7019"]], TOWGS84[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], AUTHORITY["EPSG","6258"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Geodetic longitude", EAST], AXIS["Geodetic latitude", NORTH], AUTHORITY["EPSG","4258"]]';
+        srsdefs["urn:ogc:def:crs:EPSG::25828"] = 'PROJCS["ETRS89 / UTM zone 28N", GEOGCS["ETRS89", DATUM["European Terrestrial Reference System 1989", SPHEROID["GRS 1980", 6378137.0, 298.257222101, AUTHORITY["EPSG","7019"]], TOWGS84[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], AUTHORITY["EPSG","6258"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Geodetic longitude", EAST], AXIS["Geodetic latitude", NORTH], AUTHORITY["EPSG","4258"]], PROJECTION["Transverse_Mercator", AUTHORITY["EPSG","9807"]], PARAMETER["central_meridian", -15.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["scale_factor", 0.9996], PARAMETER["false_easting", 500000.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["Easting", EAST], AXIS["Northing", NORTH], AUTHORITY["EPSG","25828"]]';
+        srsdefs["urn:ogc:def:crs:EPSG::25829"] = 'PROJCS["ETRS89 / UTM zone 29N", GEOGCS["ETRS89", DATUM["European Terrestrial Reference System 1989", SPHEROID["GRS 1980", 6378137.0, 298.257222101, AUTHORITY["EPSG","7019"]], TOWGS84[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], AUTHORITY["EPSG","6258"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Geodetic longitude", EAST], AXIS["Geodetic latitude", NORTH], AUTHORITY["EPSG","4258"]], PROJECTION["Transverse_Mercator", AUTHORITY["EPSG","9807"]], PARAMETER["central_meridian", -9.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["scale_factor", 0.9996], PARAMETER["false_easting", 500000.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["Easting", EAST], AXIS["Northing", NORTH], AUTHORITY["EPSG","25829"]]';
+        srsdefs["urn:ogc:def:crs:EPSG::25830"] = 'PROJCS["ETRS89 / UTM zone 30N", GEOGCS["ETRS89", DATUM["European Terrestrial Reference System 1989", SPHEROID["GRS 1980", 6378137.0, 298.257222101, AUTHORITY["EPSG","7019"]], TOWGS84[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], AUTHORITY["EPSG","6258"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Geodetic longitude", EAST], AXIS["Geodetic latitude", NORTH], AUTHORITY["EPSG","4258"]], PROJECTION["Transverse_Mercator", AUTHORITY["EPSG","9807"]], PARAMETER["central_meridian", -3.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["scale_factor", 0.9996], PARAMETER["false_easting", 500000.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["Easting", EAST], AXIS["Northing", NORTH], AUTHORITY["EPSG","25830"]]';
+        srsdefs["urn:ogc:def:crs:EPSG::25831"] = 'PROJCS["ETRS89 / UTM zone 31N", GEOGCS["ETRS89", DATUM["European Terrestrial Reference System 1989", SPHEROID["GRS 1980", 6378137.0, 298.257222101, AUTHORITY["EPSG","7019"]], TOWGS84[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], AUTHORITY["EPSG","6258"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Geodetic longitude", EAST], AXIS["Geodetic latitude", NORTH], AUTHORITY["EPSG","4258"]], PROJECTION["Transverse_Mercator", AUTHORITY["EPSG","9807"]], PARAMETER["central_meridian", 3.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["scale_factor", 0.9996], PARAMETER["false_easting", 500000.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["Easting", EAST], AXIS["Northing", NORTH], AUTHORITY["EPSG","25831"]]';
+        //srsdefs["EPSG_3857_elip"]  = 'PROJCS["WGS 84 / Pseudo-Mercator", GEOGCS["WGS 84", DATUM["World Geodetic System 1984", SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], AUTHORITY["EPSG","6326"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Geodetic longitude", EAST], AXIS["Geodetic latitude", NORTH], AUTHORITY["EPSG","4326"]], PROJECTION["Popular Visualisation Pseudo Mercator", AUTHORITY["EPSG","1024"]], PARAMETER["semi_minor", 6378137.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["central_meridian", 0.0], PARAMETER["scale_factor", 1.0], PARAMETER["false_easting", 0.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["Easting", EAST], AXIS["Northing", NORTH], AUTHORITY["EPSG","3857"]]';
+        srsdefs["urn:ogc:def:crs:EPSG::4326"]  = 'GEOGCS["WGS 84", DATUM["World Geodetic System 1984", SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], AUTHORITY["EPSG","6326"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Geodetic longitude", EAST], AXIS["Geodetic latitude", NORTH], AUTHORITY["EPSG","4326"]]'
+        srsdefs["urn:ogc:def:crs:EPSG::4230"]  = 'GEOGCS["ED50", DATUM["European Datum 1950", SPHEROID["International 1924", 6378388.0, 297.0, AUTHORITY["EPSG","7022"]], TOWGS84[-116.641, -56.931, -110.559, 0.893, 0.921, -0.917, -3.52], AUTHORITY["EPSG","6230"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Geodetic longitude", EAST], AXIS["Geodetic latitude", NORTH], AUTHORITY["EPSG","4230"]]'
+
+	//gridsets
+
+	var gridsets = new Array();
+
+	gridsets['urn:ogc:def:crs:EPSG::4258']={"name": "EPSG:4258", minX: -180, minY: -90, maxX: 180, maxY: 90, alignTopLeft: false, tileWidth: 256, tileHeight: 256, pixelSizeLevel0: 0.703125, tileMatrixPrefix: '', level0Name: 0, numberOfLevels: 20};
+
+	//gridsets['EPSG:4326']={minX: -180, minY: -90, maxX: 180, maxY: 90, alignTopLeft: false, tileWidth: 256, tileHeight: 256, pixelSizeLevel0: 0.703125, tileMatrixPrefix: 'EPSG:4326:', level0Name: 0, numberOfLevels: 22};
+
+	gridsets['urn:ogc:def:crs:EPSG::25828']={"name": "EPSG:25828", minX: 170000, minY: 3060000, maxX: 656000, maxY: 3265000, alignTopLeft: false, tileWidth: 256, tileHeight: 256, pixelSizeLevel0: 76.4370283, tileMatrixPrefix: '', level0Name: 10, numberOfLevels: 7};
+
+	gridsets['urn:ogc:def:crs:EPSG::25830']={"name": "EPSG:25830", minX:-1099673.71, minY:3089598.79, maxX:1141463.33, maxY:4903085.28, alignTopLeft: false, tileWidth: 256, tileHeight: 256, pixelSizeLevel0: 78271.51698, tileMatrixPrefix: '', level0Name: 0, numberOfLevels: 20};
+
+	//gridsets['EPSG:900913']={minX: -20037508.34, minY: -20037508.34, maxX: 20037508.34, maxY: 20037508.34, alignTopLeft: false, tileWidth: 256, tileHeight: 256, pixelSizeLevel0: 156543.03390625, tileMatrixPrefix: 'EPSG:900913:', level0Name: 0, numberOfLevels: 31};
+
+	//gridsets['GoogleCRS84Quad']={minX: -180, minY: -90, maxX: 180, maxY: 90, alignTopLeft: false, tileWidth: 256, tileHeight: 256, pixelSizeLevel0: 1.40625, tileMatrixPrefix: 'GoogleCRS84Quad:', level0Name: 0, numberOfLevels: 19};
+
+	//al principio en cartociudad los nombres de cartociudad tenían prefix: 'GoogleMapsCompatible:'
+	//gridsets['GoogleMapsCompatible']={minX: -20037508.34, minY: -20037508.34, maxX: 20037508.34, maxY: 20037508.34, alignTopLeft: false, tileWidth: 256, tileHeight: 256, pixelSizeLevel0: 156543.03390625, tileMatrixPrefix: '', level0Name: 0, numberOfLevels: 19};
+
+	//gridsets['InspireCRS84Quad']={minX: -180, minY: -90, maxX: 180, maxY: 90, alignTopLeft: false, tileWidth: 256, tileHeight: 256, pixelSizeLevel0: 0.703125, tileMatrixPrefix: '', level0Name: 0, numberOfLevels: 20};
+	
+	//gridsets['GoogleMapsCompatible']={minX: -20037508.34, minY: -20037508.34, maxX: 20037508.34, maxY: 20037508.34, alignTopLeft: false, tileWidth: 256, tileHeight: 256, pixelSizeLevel0: 156543.03390625, tileMatrixPrefix: '', level0Name: 0, numberOfLevels: 19};
+
+	gridsets["urn:ogc:def:crs:EPSG::3857"]={"name": "EPSG:3857", "minX": -20037508.34, "minY": -20037508.34, "maxX": 20037508.34, "maxY": 20037508.34, "alignTopLeft": false, "tileWidth": 256, "tileHeight": 256, "pixelSizeLevel0": 156543.03390625, "tileMatrixPrefix": '', "level0Name": 0, "numberOfLevels": 21};
+
+	
+	for(var gridset in gridsets) {    
+		//expand maxY if gridset is bottom left aligned
+		if(!gridsets[gridset].alignTopleft) {
+			gridsets[gridset].maxY = gridsets[gridset].minY + 
+			Math.ceil((gridsets[gridset].maxY-gridsets[gridset].minY)/(gridsets[gridset].pixelSizeLevel0 * gridsets[gridset].tileHeight)) * (gridsets[gridset].pixelSizeLevel0 * gridsets[gridset].tileHeight);
+		}
+	}
+
+	var KbTesela = 25;
+	var sTesela = 0.25;
+        
+        function text2Number(texto) {
+
+		var txt = texto;
+            	var indexOfLastComma = txt.lastIndexOf(',');
+           var indexOfLastStop = txt.lastIndexOf('.');
+           
+            if(indexOfLastStop != -1 && indexOfLastComma != -1) {
+            	if(indexOfLastComma > indexOfLastStop) {
+            		txt = txt.replace(/\./g, '');
+            	} else {
+            		txt = txt.replace(/\,/g, '');
+            	}
+            }
+            
+            if(txt.lastIndexOf(',') != -1) {
+            	txt = txt.replace(/\,/g, '.');
+            }
+            
+            return parseFloat(txt);
+        	
+        };
+        
+	$(document).ready(function() {
+	
+		var outputSRS;
+		var jsonbbox;
+		var layer;
+		var path;
+		
+		$( "#outputSRS" ).selectmenu({
+			width: $("#outputSRS").parent().width(),
+			open: function(event) {
+				$( document ).tooltip( "destroy" );
+			},
+			close: function(event) {
+				$( document ).tooltip({track:true});
+			},
+			select: function( event, ui ) {
+	
+				outputSRS = ui.item.value;
+				var option;
+
+				//al cambiar el SRS
+				//actualizar el slide
+				//cambiar valor maximo 
+				$( "#niveles" ).slider( "option", "max", gridsets[outputSRS].numberOfLevels - 1 );
+				//ajustar los controles al minimo y al maximo
+				$( "#niveles" ).slider( "option", "values", [ 0, gridsets[outputSRS].numberOfLevels - 1 ] );
+				//cambiar el title 
+				$( "#niveles span:first" ).attr("title",
+					gridsets[outputSRS].tileMatrixPrefix + (gridsets[outputSRS].level0Name + 0));
+				$( "#niveles span:last" ).attr("title",
+					gridsets[outputSRS].tileMatrixPrefix + (gridsets[outputSRS].level0Name + gridsets[outputSRS].numberOfLevels - 1));
+
+				//actualizar los menuselect
+				var levelselects = $( ".select-level" ).empty();
+				for(var i=0; i<gridsets[outputSRS].numberOfLevels;i++) {
+					levelselects.append('<option value="' + i + '">' + 
+						gridsets[outputSRS].tileMatrixPrefix + (gridsets[outputSRS].level0Name + i) + 
+						'</option>');
+				}
+				levelselects.filter( "#minlevel" )
+					.children( "option:first" )
+						.attr("selected","selected");
+				levelselects.filter( "#maxlevel" )
+					.children( "option:last" )
+						.attr("selected","selected")
+				levelselects.each(function(){
+					$( this ).selectmenu("instance").refresh();
+					$( this ).next( "span" ).attr("title", gridsets[outputSRS].tileMatrixPrefix + (parseInt(gridsets[outputSRS].level0Name) + parseInt($( this ).val())));
+				});
+			}
+		}).next("span").attr("title", "Indique el SRS");
+
+		$( "#add" ).button().click(function(){
+			json = JSON.parse($("#json").val());
+			outputSRS = $("#outputSRS").val();
+			layer = $("#layer").val();
+			path = $("#path").val();
+			var rangeZ = $( "#niveles" ).slider( "option", "values" );
+
+			console.log('json:' + json);
+			console.log('outputSRS:' + outputSRS);
+
+			json.bbox = $.map(json.bbox, function(bbox, i){
+				
+				console.log('bbox ' + i + 1);
+
+				bbox.lb = [];
+				bbox.ru = [];
+				bbox.lb[0] = bbox.xmin; bbox.lb[1] = bbox.ymin;
+				bbox.ru[0] = bbox.xmax; bbox.ru[1] = bbox.ymax;
+
+				console.log('  lb:' + bbox.lb);
+				console.log('  ru:' + bbox.ru);
+
+				bbox.lb = proj4(srsdefs[bbox.crs], srsdefs[outputSRS], bbox.lb);
+				bbox.ru = proj4(srsdefs[bbox.crs], srsdefs[outputSRS], bbox.ru);
+
+				console.log('  lb (transformada):' + bbox.lb);
+				console.log('  ru (transformada):' + bbox.ru);
+
+				return bbox;
+			});
+
+			$('.hidden').removeClass('hidden');
+			//borrado
+			console.log('borrado');
+			var eraseTable = $("#erase");
+			
+			
+			for(var z=rangeZ[0]; z<=rangeZ[1]; z++) {
+
+				var resolution = gridsets[outputSRS].pixelSizeLevel0 / Math.pow(2,z);
+				var tileSizeInGroundUnits = gridsets[outputSRS].tileWidth*resolution;
+
+				$.each(json.bbox, function(i, bbox){
+
+					var minCol = Math.floor((bbox.lb[0] - gridsets[outputSRS].minX) / tileSizeInGroundUnits);
+					var minRow = Math.floor((bbox.lb[1] - gridsets[outputSRS].minY) / tileSizeInGroundUnits);
+					var maxCol = Math.floor((bbox.ru[0] - gridsets[outputSRS].minX) / tileSizeInGroundUnits);
+					var maxRow = Math.floor((bbox.ru[1] - gridsets[outputSRS].minY) / tileSizeInGroundUnits);
+					var param = './borraDirectoriosTeselas';
+					param = param + ' ' + minCol;
+					param = param + ' ' + maxCol;
+					param = param + ' ' + minRow;
+					param = param + ' ' + maxRow;
+					param = param + ' ' + gridsets[outputSRS].tileMatrixPrefix + (gridsets[outputSRS].level0Name + z);
+					param = param + ' ' + path + '/' + layer + '/' + gridsets[outputSRS].name.replace(':', '_') + '_';
+					var rowTag;
+					if((z-rangeZ[0]) % 2 != 0) {
+						rowTag = '<tr class="greybackground">';
+					}else{
+						rowTag = '<tr>';
+					}
+
+					eraseTable.append(rowTag + '<td>' + param + '</td></tr>');
+					console.log('param:' +param);
+				});
+				
+			}
+
+			//precacheo
+			var cacheTable = $("#cache");
+			var cacheStatsTable = $("#cacheStats");
+			var nTeselas, nTeselasTotal=0;
+			var diskSize, diskSizeTotal=0;
+			var diskSizeUnits = [' kB', ' MB', ' GB', ' TB', ' PB'];
+			var iDiskSizeUnits;
+			var time, timeTotal=0;
+			var timeUnits = [ 
+				{"unit":'s', "factor": 60},
+				{"unit":'m', "factor": 60},
+				{"unit":'h', "factor": 24},
+				{"unit":' día', "factor": 7},
+				{"unit":' semana', "factor": 30/7},
+				{"unit":' mes'}];
+			var iTimeUnits;
+
+			console.log('precacheo');
+
+			for(var z=rangeZ[0]; z<=rangeZ[1]; z++) {
+				var resolution = gridsets[outputSRS].pixelSizeLevel0 / Math.pow(2,z);
+				var tileSizeInGroundUnits = gridsets[outputSRS].tileWidth*resolution;
+
+				$.each(json.bbox, function(i, bbox){
+
+					var minCol = Math.floor((bbox.lb[0] - gridsets[outputSRS].minX) / tileSizeInGroundUnits);
+					var maxRow = Math.floor((gridsets[outputSRS].maxY-bbox.lb[1]) / tileSizeInGroundUnits);
+					var maxCol = Math.floor((bbox.ru[0] - gridsets[outputSRS].minX) / tileSizeInGroundUnits);
+					var minRow = Math.floor((gridsets[outputSRS].maxY-bbox.ru[1]) / tileSizeInGroundUnits);
+					var param = 'LAYER=' + layer;
+					param = param + '&TILEMATRIXSET=' + gridsets[outputSRS].name;
+					param = param + '&TILEMATRIX=' + gridsets[outputSRS].tileMatrixPrefix + (gridsets[outputSRS].level0Name + z);
+					param = param + '&TILECOLMIN=' + minCol;
+					param = param + '&TILEROWMIN=' + minRow;
+					param = param + '&TILECOLMAX=' + maxCol;
+					param = param + '&TILEROWMAX=' + maxRow;
+
+					nTeselas = (maxCol - minCol + 1)*(maxRow - minRow + 1);
+					nTeselasTotal += nTeselas;
+
+					diskSize = nTeselas * KbTesela;
+					diskSizeTotal += diskSize;
+					iDiskSizeUnits = 0;
+					while(diskSize > 1024 && iDiskSizeUnits < diskSizeUnits.length) {
+						diskSize /= 1024;
+						iDiskSizeUnits++;
+					}
+					diskSize = Math.round(diskSize*10)/10;
+
+					time = nTeselas * sTesela;
+					timeTotal += time;
+					iTimeUnits = 0;
+					while(time > timeUnits[iTimeUnits].factor && iTimeUnits < timeUnits.length) {
+						time /= timeUnits[iTimeUnits].factor;
+						iTimeUnits++;
+					}
+					time = Math.round(time*10)/10;
+
+					var rowTag;
+					if((z-rangeZ[0]) % 2 != 0) {
+						rowTag = '<tr class="greybackground">';
+					}else{
+						rowTag = '<tr>';
+					}
+
+					cacheTable.append(rowTag + '<td>' + param + '</td>' +
+						'</tr>');
+					cacheStatsTable.append(rowTag + 
+						'<td>' + nTeselas + '</td>' +
+						'<td>' + diskSize + diskSizeUnits[iDiskSizeUnits]+'</td>' +
+						'<td>' + time + timeUnits[iTimeUnits].unit + '</td>' +
+						'</tr>');
+					console.log('param:' +param);
+
+				});
+			}
+
+			//presentar totales
+			//cacheStatsTable.append('<thead><tr><th>nº Teselas</th><th>Espacio en disco</th><th>Tiempo</th></tr></thead>');
+
+			iDiskSizeUnits = 0;
+			while(diskSizeTotal > 1024 && iDiskSizeUnits < diskSizeUnits.length) {
+				diskSizeTotal /= 1024;
+				iDiskSizeUnits++;
+			}
+			diskSizeTotal = Math.round(diskSizeTotal*10)/10;
+
+
+			iTimeUnits = 0;
+			while(timeTotal > timeUnits[iTimeUnits].factor && iTimeUnits < timeUnits.length) {
+				timeTotal /= timeUnits[iTimeUnits].factor;
+				iTimeUnits++;
+			}
+			timeTotal = Math.round(timeTotal*10)/10;
+
+			cacheStatsTable.append('<tfoot>' + 
+				'<tr><th>nº Teselas</th><th>Espacio en disco</th><th>Tiempo</th></tr>' + 
+				'<tr>' + 
+				'<td>' + nTeselasTotal + '</td>' +
+				'<td>' + diskSizeTotal + diskSizeUnits[iDiskSizeUnits]+'</td>' +
+				'<td>' + timeTotal + timeUnits[iTimeUnits].unit + '</td>' +
+				'</tr></tfoot>');
+		});
+
+		outputSRS = $("#outputSRS").val();
+
+		$( "#niveles" ).slider({
+			range: true,
+			min: 0,
+			max: gridsets[outputSRS].numberOfLevels -1,
+			values: [0 , gridsets[outputSRS].numberOfLevels -1],
+			slide: function( event, ui ) {
+				$( "#niveles span:first" ).attr("title",
+					gridsets[outputSRS].tileMatrixPrefix + (gridsets[outputSRS].level0Name + ui.values[ 0 ]));
+				$( "#niveles span:last" ).attr("title",
+					gridsets[outputSRS].tileMatrixPrefix + (gridsets[outputSRS].level0Name + ui.values[ 1 ]));
+				$( "#minlevel" ).val(ui.values[ 0 ]).selectmenu("instance").refresh();
+				$( "#maxlevel" ).val(ui.values[ 1 ]).selectmenu("instance").refresh();
+
+				//atributos para tooltip
+								
+				$( ".select-level" ).each(function(){
+					$( this ).next( "span" ).attr("title", gridsets[outputSRS].tileMatrixPrefix + (parseInt(gridsets[outputSRS].level0Name) + parseInt($( this ).val())));
+				});
+				
+
+			}
+		});
+
+		$( "#niveles span:first" ).attr("title",
+			gridsets[outputSRS].tileMatrixPrefix + (gridsets[outputSRS].level0Name + 0));
+		$( "#niveles span:last" ).attr("title",
+			gridsets[outputSRS].tileMatrixPrefix + (gridsets[outputSRS].level0Name + gridsets[outputSRS].numberOfLevels -1));
+
+		var levelselects = $( ".select-level" )
+		for(var i=0; i<gridsets[outputSRS].numberOfLevels;i++) {
+			levelselects.append('<option value="' + i + '">' + 
+				gridsets[outputSRS].tileMatrixPrefix + (gridsets[outputSRS].level0Name + i) + 
+				'</option>');
+		}
+		
+		levelselects.filter( "#minlevel" ).children( "option:first" ).attr("selected","selected");
+		levelselects.filter( "#maxlevel" ).children( "option:last" ).attr("selected","selected");
+		levelselects.selectmenu( { 
+			width: $(levelselects.parent()).width(),
+			open: function(event) {
+				$( document ).tooltip( "destroy" );
+			},
+			close: function(event) {
+				$( document ).tooltip({track:true});
+			},
+			change: function(event,ui){
+				var levelValues = $("#niveles").slider("values");
+				if(event.target.id=='minlevel'){
+					levelValues[0] = parseInt(ui.item.value);
+				}else{
+					levelValues[1] = parseInt(ui.item.value);
+				}
+				$("#niveles").slider("values", levelValues);
+				$( "#niveles span:first" ).attr("title",
+					gridsets[outputSRS].tileMatrixPrefix + (parseInt(gridsets[outputSRS].level0Name) + parseInt(levelValues[0])));
+				$( "#niveles span:last" ).attr("title",
+					gridsets[outputSRS].tileMatrixPrefix + (parseInt(gridsets[outputSRS].level0Name) + parseInt(levelValues[1])));
+
+				$(this).next("span").attr("title", 
+					gridsets[outputSRS].tileMatrixPrefix + (parseInt(gridsets[outputSRS].level0Name) + parseInt(ui.item.value)));
+			}
+		} );
+		levelselects.each(function(){
+			$(this).next("span").attr("title", 
+				gridsets[outputSRS].tileMatrixPrefix + (parseInt(gridsets[outputSRS].level0Name) + parseInt($( this ).val())));
+		});
+		
+		$(document).tooltip({track:true});
+});
+</script>
+	
+</body>
+</html>

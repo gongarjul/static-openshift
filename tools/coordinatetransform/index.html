@@ -1,0 +1,206 @@
+<!DOCTYPE HTML>
+<html lang="es">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>
+            Untitled Document
+        </title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.0.3/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.0.3/css/bootstrap-theme.min.css">
+        <link rel="stylesheet" href="main.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.0.3/proj4.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.0.3/js/bootstrap.min.js"></script>
+
+    </head>
+    <body>
+        <div class="container">
+            <form role="form">
+                <div class="row">
+                    <fieldset class="EPSG_4258 col-md-2">
+                        <legend>EPSG:4258</legend>
+                        <div class="form-group">
+                            <label for="4258x" class="sr-only">Longitude</label>
+                            <input type="text" class="x form-control" id="4258x" placeholder="Enter longitude">
+                        </div>
+                        <div class="form-group">
+                            <label for="4258y" class="sr-only">Latitude</label>
+                            <input type="text" class="y form-control" id="4258y" placeholder="Enter latitude">
+                        </div>
+                    </fieldset>
+                    <fieldset class="EPSG_4326 col-md-2">
+                        <legend>EPSG:4326</legend>
+                        <div class="form-group">
+                            <label for="4326x" class="sr-only">Longitude</label>
+                            <input type="text" class="x form-control" id="4326x" placeholder="Enter longitude">
+                        </div>
+                        <div class="form-group">
+                            <label for="4326y" class="sr-only">Latitude</label>
+                            <input type="text" class="y form-control" id="4326y" placeholder="Enter latitude">
+                        </div>
+                    </fieldset>
+                    <fieldset class="EPSG_4230 col-md-2">
+                        <legend>EPSG:4230</legend>
+                        <div class="form-group">
+                            <label for="4230x" class="sr-only">Longitude</label>
+                            <input type="text" class="x form-control" id="4230x" placeholder="Enter longitude" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label for="4230y" class="sr-only">Latitude</label>
+                            <input type="text" class="y form-control" id="4230y" placeholder="Enter latitude" disabled>
+                        </div>
+                    </fieldset>
+                </div>
+                <div class="row">
+                    <fieldset class="EPSG_25828 col-md-2">
+                        <legend>EPSG:28528</legend>
+                        <div class="form-group">
+                            <label for="25828x" class="sr-only">X</label>
+                            <input type="text" class="x form-control" id="25828x" placeholder="Enter x">
+                        </div>
+                        <div class="form-group">
+                            <label for="25828y" class="sr-only">Y</label>
+                            <input type="text" class="y form-control" id="25828y" placeholder="Enter y">
+                        </div>
+                    </fieldset>
+                    <fieldset class="EPSG_25829 col-md-2">
+                        <legend>EPSG:28529</legend>
+                        <div class="form-group">
+                            <label for="25829x" class="sr-only">X</label>
+                            <input type="text" class="x form-control" id="25829x" placeholder="Enter x">
+                        </div>
+                        <div class="form-group">
+                            <label for="25829y" class="sr-only">Y</label>
+                            <input type="text" class="y form-control" id="25829y" placeholder="Enter y">
+                        </div>
+                    </fieldset>
+                    <fieldset class="EPSG_25830 col-md-2">
+                        <legend>EPSG:28530</legend>
+                        <div class="form-group">
+                            <label for="25830x" class="sr-only">X</label>
+                            <input type="text" class="x form-control" id="25830x" placeholder="Enter x">
+                        </div>
+                        <div class="form-group">
+                            <label for="25830y" class="sr-only">Y</label>
+                            <input type="text" class="y form-control" id="25830y" placeholder="Enter y">
+                        </div>
+                    </fieldset>
+                    <fieldset class="EPSG_25831 col-md-2">
+                        <legend>EPSG:28531</legend>
+                        <div class="form-group">
+                            <label for="25831x" class="sr-only">X</label>
+                            <input type="text" class="x form-control" id="25831x" placeholder="Enter x">
+                        </div>
+                        <div class="form-group">
+                            <label for="25831y" class="sr-only">Y</label>
+                            <input type="text" class="y form-control" id="25831y" placeholder="Enter y">
+                        </div>
+                    </fieldset>
+                    <fieldset class="EPSG_3857 col-md-2">
+                        <legend>EPSG:3857</legend>
+                        <div class="form-group">
+                            <label for="3857x" class="sr-only">X</label>
+                            <input type="text" class="x form-control" id="3857x" placeholder="Enter x">
+                        </div>
+                        <div class="form-group">
+                            <label for="3857y" class="sr-only">Y</label>
+                            <input type="text" class="y form-control" id="3857y" placeholder="Enter y">
+                        </div>
+                    </fieldset>
+                </div>
+            </form>
+        </div>
+        <script>
+
+            var defs = {};
+
+            /*
+             * proj4 string from spatial reference
+             */
+            //defs["EPSG_4258"] = "+proj=longlat +ellps=GRS80 +no_defs";
+            //defs["EPSG_25828"] = "+proj=utm +zone=28 +ellps=GRS80 +units=m +no_defs";
+            //defs["EPSG_25829"] = "+proj=utm +zone=29 +ellps=GRS80 +units=m +no_defs";
+            //defs["EPSG_25830"] = "+proj=utm +zone=30 +ellps=GRS80 +units=m +no_defs";
+            //defs["EPSG_25831"] = "+proj=utm +zone=31 +ellps=GRS80 +units=m +no_defs";
+            defs["EPSG_3857"] = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs";
+            /*
+             * instead of use the ellipsoid for calculations the sphere is used 
+             * see remarks on http://www.opengis.net/def/crs/EPSG/0/3857 or see the definition in the EPSG database
+             * content of the tag: Uses spherical development of ellipsoidal coordinates. Relative to an ellipsoidal development errors of up to 800 metres in position and 0.7 percent in scale may arise. It is not a recognised geodetic system: see WGS 84 / World Mercator (CRS code 3395).
+             */
+            //defs["EPSG_4326"] = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs";
+            //defs["EPSG_4230"] = "+proj=longlat +ellps=intl +no_defs";
+
+            /* 
+             * WKT from 
+             * http://svn.osgeo.org/geotools/trunk/modules/plugin/epsg-wkt/src/main/resources/org/geotools/referencing/crs/epsg.properties
+             * file header:
+             * Generated from EPSG database version 7.9.0
+             * Sun Oct 16 14:49:47 CEST 2011
+             */
+
+            defs["EPSG_4258"] = 'GEOGCS["ETRS89", DATUM["European Terrestrial Reference System 1989", SPHEROID["GRS 1980", 6378137.0, 298.257222101, AUTHORITY["EPSG","7019"]], TOWGS84[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], AUTHORITY["EPSG","6258"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Geodetic longitude", EAST], AXIS["Geodetic latitude", NORTH], AUTHORITY["EPSG","4258"]]';
+            defs["EPSG_25828"] = 'PROJCS["ETRS89 / UTM zone 28N", GEOGCS["ETRS89", DATUM["European Terrestrial Reference System 1989", SPHEROID["GRS 1980", 6378137.0, 298.257222101, AUTHORITY["EPSG","7019"]], TOWGS84[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], AUTHORITY["EPSG","6258"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Geodetic longitude", EAST], AXIS["Geodetic latitude", NORTH], AUTHORITY["EPSG","4258"]], PROJECTION["Transverse_Mercator", AUTHORITY["EPSG","9807"]], PARAMETER["central_meridian", -15.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["scale_factor", 0.9996], PARAMETER["false_easting", 500000.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["Easting", EAST], AXIS["Northing", NORTH], AUTHORITY["EPSG","25828"]]';
+            defs["EPSG_25829"] = 'PROJCS["ETRS89 / UTM zone 29N", GEOGCS["ETRS89", DATUM["European Terrestrial Reference System 1989", SPHEROID["GRS 1980", 6378137.0, 298.257222101, AUTHORITY["EPSG","7019"]], TOWGS84[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], AUTHORITY["EPSG","6258"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Geodetic longitude", EAST], AXIS["Geodetic latitude", NORTH], AUTHORITY["EPSG","4258"]], PROJECTION["Transverse_Mercator", AUTHORITY["EPSG","9807"]], PARAMETER["central_meridian", -9.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["scale_factor", 0.9996], PARAMETER["false_easting", 500000.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["Easting", EAST], AXIS["Northing", NORTH], AUTHORITY["EPSG","25829"]]';
+            defs["EPSG_25830"] = 'PROJCS["ETRS89 / UTM zone 30N", GEOGCS["ETRS89", DATUM["European Terrestrial Reference System 1989", SPHEROID["GRS 1980", 6378137.0, 298.257222101, AUTHORITY["EPSG","7019"]], TOWGS84[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], AUTHORITY["EPSG","6258"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Geodetic longitude", EAST], AXIS["Geodetic latitude", NORTH], AUTHORITY["EPSG","4258"]], PROJECTION["Transverse_Mercator", AUTHORITY["EPSG","9807"]], PARAMETER["central_meridian", -3.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["scale_factor", 0.9996], PARAMETER["false_easting", 500000.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["Easting", EAST], AXIS["Northing", NORTH], AUTHORITY["EPSG","25830"]]';
+            defs["EPSG_25831"] = 'PROJCS["ETRS89 / UTM zone 31N", GEOGCS["ETRS89", DATUM["European Terrestrial Reference System 1989", SPHEROID["GRS 1980", 6378137.0, 298.257222101, AUTHORITY["EPSG","7019"]], TOWGS84[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], AUTHORITY["EPSG","6258"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Geodetic longitude", EAST], AXIS["Geodetic latitude", NORTH], AUTHORITY["EPSG","4258"]], PROJECTION["Transverse_Mercator", AUTHORITY["EPSG","9807"]], PARAMETER["central_meridian", 3.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["scale_factor", 0.9996], PARAMETER["false_easting", 500000.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["Easting", EAST], AXIS["Northing", NORTH], AUTHORITY["EPSG","25831"]]';
+            //defs["EPSG_3857_elip"]  = 'PROJCS["WGS 84 / Pseudo-Mercator", GEOGCS["WGS 84", DATUM["World Geodetic System 1984", SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], AUTHORITY["EPSG","6326"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Geodetic longitude", EAST], AXIS["Geodetic latitude", NORTH], AUTHORITY["EPSG","4326"]], PROJECTION["Popular Visualisation Pseudo Mercator", AUTHORITY["EPSG","1024"]], PARAMETER["semi_minor", 6378137.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["central_meridian", 0.0], PARAMETER["scale_factor", 1.0], PARAMETER["false_easting", 0.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["Easting", EAST], AXIS["Northing", NORTH], AUTHORITY["EPSG","3857"]]';
+            defs["EPSG_4326"] = 'GEOGCS["WGS 84", DATUM["World Geodetic System 1984", SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], AUTHORITY["EPSG","6326"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Geodetic longitude", EAST], AXIS["Geodetic latitude", NORTH], AUTHORITY["EPSG","4326"]]'
+            defs["EPSG_4230"] = 'GEOGCS["ED50", DATUM["European Datum 1950", SPHEROID["International 1924", 6378388.0, 297.0, AUTHORITY["EPSG","7022"]], TOWGS84[-116.641, -56.931, -110.559, 0.893, 0.921, -0.917, -3.52], AUTHORITY["EPSG","6230"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Geodetic longitude", EAST], AXIS["Geodetic latitude", NORTH], AUTHORITY["EPSG","4230"]]'
+
+            function text2Number(texto) {
+
+                var txt = texto;
+                var indexOfLastComma = txt.lastIndexOf(',');
+                var indexOfLastStop = txt.lastIndexOf('.');
+
+                if (indexOfLastStop != -1 && indexOfLastComma != -1) {
+                    if (indexOfLastComma > indexOfLastStop) {
+                        txt = txt.replace(/\./g, '');
+                    } else {
+                        txt = txt.replace(/\,/g, '');
+                    }
+                }
+
+                if (txt.lastIndexOf(',') != -1) {
+                    txt = txt.replace(/\,/g, '.');
+                }
+
+                return parseFloat(txt);
+
+            }
+            ;
+
+            $(document).ready(function () {
+                $('input').on('change', function () {
+                    var fromProjection = $(this).closest('fieldset').attr('class').split(' ')[0];
+                    var isXYfilled;
+                    $('.' + fromProjection).find('input').each(function () {
+                        var filled = $(this).val().length > 0;
+                        isXYfilled = isXYfilled === undefined ? filled : isXYfilled && filled;
+                    });
+                    if (isXYfilled) {
+                        //transformar
+                        var coordinates = [];
+                        $('.' + fromProjection).find('input').removeClass('calculated');
+
+                        coordinates[0] = text2Number($('.' + fromProjection).find('.x').val());
+                        coordinates[1] = text2Number($('.' + fromProjection).find('.y').val());
+
+                        $.each(defs, function (key, value) {
+                            if (key != fromProjection) {
+                                var transformedcoordinates = proj4(defs[fromProjection], value, coordinates);
+                                console.log(key + ":" + transformedcoordinates);
+                                $('.' + key).find('.x').val(transformedcoordinates[0]).addClass('calculated');
+                                $('.' + key).find('.y').val(transformedcoordinates[1]).addClass('calculated');
+                            }
+                        });
+
+                    }
+                });
+            });
+        </script>
+
+    </body>
+</html>
