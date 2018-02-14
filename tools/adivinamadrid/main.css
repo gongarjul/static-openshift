@@ -1,0 +1,58 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 13-feb-2018, 9:25:11
+    Author     : root
+*/
+html, body, .container, .map, .list {
+    margin: 0;
+    padding: 0px;
+    height: 100%;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.column {
+    float: left;
+    padding: 15px;
+}
+.clearfix::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
+.map {
+    width: 75%;
+}
+
+.list {
+    width: 25%;
+    overflow:auto;
+}
+
+.list ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+.list li {
+    padding: 8px;
+    margin-bottom: 8px;
+    background-color: #33b5e5;
+    color: #ffffff;
+}
+.list li:hover {
+    background-color: #0099cc;
+    cursor: pointer;
+}
+
+.list li.selected {
+    background-color: #0099cc;
+    color: #ffff00;
+}

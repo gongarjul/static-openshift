@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+    <head>
+	<title>GeoJSON</title>
+	<script src="https://openlayers.org/en/v4.6.4/build/ol.js"></script>
+	<link href="main.css" rel="stylesheet" type="text/css"/>
+    </head>
+    <body>
+	<div class="container">
+	    <div id="map" ondragover="allowDrop(event)" ondrop="drop(event)" class="column map"></div>
+	    <div id="list" class="column list">
+		<ul>
+		</ul>
+	    </div>
+	</div>
+	<script>
+
+	    var defaultFill = new ol.style.Fill({
+		color: 'rgba(255,255,255,1)'
+	    });
+	    var defaultStroke = new ol.style.Stroke({
+		color: '#3399CC',
+		width: 4.25
+	    });
+
+	    var styles = {
+		"MultiPolygon": new ol.style.Style({
+		    stroke: new ol.style.Stroke({
+			color: 'black',
+			width: 4
+		    }),
+		    fill: new ol.style.Fill({
+			color: 'rgba(255, 255, 0, 0.3)'
+		    })
+		}),
+		"default": new ol.style.Style({
+		    image: new ol.style.Circle({
+			fill: defaultFill,
+			stroke: defaultStroke,
+			radius: 5
+		    }),
+		    fill: defaultFill,
+		    stroke: defaultStroke
+		})
+	    };
+
+	    var styleFunction = function (feature) {
+		return styles[feature.getGeometry().getType()];
+	    };
+
+	    var sourceVector = new ol.source.Vector({
+		url: './data/municipios_madrid.geojson',
+		format: new ol.format.GeoJSON({featureProjection: "EPSG:3857"})
+	    });
+	    sourceVector.on('change', function (e) {
+		map.getView().fit(this.getExtent(), {size: map.getSize()});
+		var ul = document.getElementById('list')
+			.getElementsByTagName('ul')[0];
+		this.forEachFeature(function (e) {
+		    var li = document.createElement('li');
+		    li.appendChild(
+			    document.createTextNode(e.get('NAMEUNIT')));
+		    li.dataset.inspireid = e.get('INSPIREID');
+		    li.setAttribute('draggable', 'true');
+		    //TODO handle event
+		    li.addEventListener('dragstart', drag);
+		    li.addEventListener('click', liClicked);
+		    ul.appendChild(li);
+		});
+	    }, sourceVector);
+
+	    var vectorLayer = new ol.layer.Vector({
+		source: sourceVector,
+		style: styleFunction
+	    });
+
+	    var featureOverlay = new ol.layer.Vector({
+		source: new ol.source.Vector(),
+		style: styles['default']
+	    });
+
+	    var map = new ol.Map({
+		layers: [
+		    vectorLayer, featureOverlay
+		],
+		target: 'map',
+		controls: ol.control.defaults({
+		    attributionOptions: {
+			collapsible: false
+		    }
+		}),
+		view: new ol.View({
+		    center: [0, 0],
+		    zoom: 2
+		})
+	    });
+
+	    //select on map
+	    var INSPIREIDselectedFeatureMap = "";
+
+	    var selectClick = new ol.interaction.Select({
+		condition: ol.events.condition.click
+	    });
+
+	    selectClick.on('select', function (ev) {
+		var fc = ev.target.getFeatures();
+		if (fc.getLength() === 0) {
+		    INSPIREIDselectedFeatureMap = "";
+		} else {
+		    INSPIREIDselectedFeatureMap = fc.item(0).get('INSPIREID');
+		    if (selectedli) {
+			checkComparison(selectedli.dataset.inspireid,
+				INSPIREIDselectedFeatureMap);
+		    }
+		}
+	    });
+	    map.addInteraction(selectClick);
+
+	    //select on list
+	    var selectedli = null;
+
+	    function selectli(li) {
+		if (selectedli) {
+		    selectedli.className = "";
+		}
+		if (selectedli === li) {
+		    //deselect
+		    selectedli = null;
+		} else {
+		    //select
+		    selectedli = li;
+		    selectedli.className = "selected";
+		    if (INSPIREIDselectedFeatureMap !== "") {
+			checkComparison(selectedli.dataset.inspireid,
+				INSPIREIDselectedFeatureMap);
+		    }
+		}
+
+	    }
+
+	    function checkComparison(id1, id2) {
+		if (id1 === id2) {
+		    alert('Bien');
+		    return true;
+		} else {
+		    alert('Mal');
+		    return false;
+		}
+	    }
+
+	    // events handlers
+	    // li
+	    function liClicked(ev) {
+		selectli(ev.target);
+	    }
+
+	    function drag(ev) {
+		selectli(ev.target);
+		ev.dataTransfer.setData("text", ev.target.dataset.inspireid);
+	    }
+
+	    // div#map
+	    function allowDrop(ev) {
+		ev.preventDefault();
+		featureOverlay.getSource().clear(true);
+		map.forEachFeatureAtPixel(map.getEventPixel(ev), function (f) {
+		    featureOverlay.getSource().addFeature(f);
+		    return true;
+		});
+	    }
+
+	    function drop(ev) {
+		ev.preventDefault();
+		//deselect li
+		selectli(selectedli);
+		var data = ev.dataTransfer.getData("text");
+		map.forEachFeatureAtPixel(map.getEventPixel(ev), function (f) {
+		    return checkComparison(f.get('INSPIREID'), data);
+		}, {"layerFilter": function (lc) {
+			return lc === vectorLayer;
+		    }});
+		featureOverlay.getSource().clear(true);
+	    }
+	</script>
+    </body>
+</html>
