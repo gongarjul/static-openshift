@@ -2,12 +2,15 @@
 <html>
     <head>
 	<title>GeoJSON</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 	<script src="https://openlayers.org/en/v4.6.4/build/ol.js"></script>
 	<link href="main.css" rel="stylesheet" type="text/css"/>
     </head>
     <body>
 	<div class="container">
-	    <div id="map" class="column map"></div>
+	    <div id="map" class="column map">
+		<div class="alert" ></div>
+	    </div>
 	    <div id="list" class="column list">
 		<ul>
 		</ul>
@@ -105,14 +108,11 @@
 		    vectorLayer, featureOverlay
 		],
 		target: 'map',
-		controls: ol.control.defaults({
-		    attributionOptions: {
-			collapsible: false
-		    }
-		}),
+		controls: ol.control.defaults(),
 		view: new ol.View({
 		    center: [0, 0],
-		    zoom: 2
+		    zoom: 2,
+		    enableRotation: false
 		})
 	    });
 
@@ -130,8 +130,10 @@
 		} else {
 		    id_ineselectedFeatureMap = fc.item(0).get('id_ine');
 		    if (selectedli) {
-			checkComparison(selectedli.dataset.inspireid,
-				id_ineselectedFeatureMap);
+			if (checkComparison(selectedli.dataset.inspireid,
+				id_ineselectedFeatureMap)) {
+			    selectedli.remove();
+			}
 		    }
 		}
 	    });
@@ -152,21 +154,29 @@
 		    selectedli = li;
 		    selectedli.className = "selected";
 		    if (id_ineselectedFeatureMap !== "") {
-			checkComparison(selectedli.dataset.inspireid,
-				id_ineselectedFeatureMap);
+			if (checkComparison(selectedli.dataset.inspireid,
+				id_ineselectedFeatureMap)) {
+			    selectedli.remove();
+			    selectedli = null;
+			    selectClick.getFeatures().clear(true);
+			    id_ineselectedFeatureMap = '';
+			}
+			;
 		    }
 		}
 
 	    }
 
 	    function checkComparison(id1, id2) {
-		if (id1 === id2) {
-		    alert('Bien');
-		    return true;
+		var resultType = id1 === id2;
+		var msg;
+		if (resultType) {
+		    msg = 'Correcto';
 		} else {
-		    alert('Mal');
-		    return false;
+		    msg = 'Vuelve a intentarlo';
 		}
+		alert.show(resultType, msg);
+		return resultType;
 	    }
 
 	    // events handlers
@@ -208,6 +218,28 @@
 		    }});
 		featureOverlay.getSource().clear(true);
 	    }
+
+	    var alert = {
+		visible: false,
+		timeout: null,
+		show: function (t, m) {
+		    if (this.timeout) {
+			clearTimeout(this.timeout);
+		    }
+		    var alertDiv = document.getElementsByClassName('alert')[0];
+		    alertDiv.textContent = m;
+		    alertDiv.className = 'alert ' +
+			    (t ? 'alert-success' : 'alert-danger');
+		    alertDiv.style.display = 'block';
+		    this.timeout = setTimeout(this.hide, 1500);
+		},
+		hide: function () {
+		    var alertDiv = document.getElementsByClassName('alert')[0];
+		    alertDiv.style.display = 'none';
+		    alert.timeout = null;
+		}
+	    };
+
 	</script>
     </body>
 </html>
