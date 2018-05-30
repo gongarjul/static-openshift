@@ -31,7 +31,7 @@
         <link rel="stylesheet" href="//js.arcgis.com/3.15/esri/css/esri.css">
         <!-- css required for a basic style it will be partially overriden at the
             end of the next style tag -->
-        <link rel="stylesheet" href="http://componentes.ign.es/NucleoVisualizador/css/ApiVis-main.css">
+        <link rel="stylesheet" href="//componentes.ign.es/NucleoVisualizador/css/ApiVis-main.css">
         <style>
             html, body {
                 padding: 0;
@@ -172,8 +172,8 @@
                             // import the widget definition this way seems to be
                             // working well. wicket is a dependency of IGN.search
                             // widget
-                            $.getScript("http://componentes.ign.es/NucleoVisualizador/js/wicket.js");
-                            $.getScript("http://componentes.ign.es/NucleoVisualizador/IGN_search.js", function () {
+                            $.getScript("https://componentes.ign.es/NucleoVisualizador/js/wicket.js");
+                            $.getScript("https://componentes.ign.es/NucleoVisualizador/IGN_search.js", function () {
                                 // Get an instance
                                 $('#ign_search').search({
                                     // Basic options, more on documentation
@@ -310,8 +310,8 @@
                             layerInfo: layerInfo2
                         };
 
-                        wmtsLayers = [new WMTSLayer("http://www.ign.es/wmts/pnoa-ma", options2),
-                            new WMTSLayer("http://www.ign.es/wmts/ign-base", options1)
+                        wmtsLayers = [new WMTSLayer("https://www.ign.es/wmts/pnoa-ma", options2),
+                            new WMTSLayer("https://www.ign.es/wmts/ign-base", options1)
 
                         ];
 
@@ -325,11 +325,11 @@
         <div id="ign_search"></div>
         <div id="map">
             <div id="citationInfo">        
-                <a href="http://www.ign.es/wmts/ign-base?request=GetCapabilities&amp;service=WMTS">IGN-base</a>
+                <a href="//www.ign.es/wmts/ign-base?request=GetCapabilities&amp;service=WMTS">IGN-base</a>
                 y
-                <a href="http://www.ign.es/wmts/pnoa-ma?request=GetCapabilities&amp;service=WMTS">PNOA</a>
+                <a href="//www.ign.es/wmts/pnoa-ma?request=GetCapabilities&amp;service=WMTS">PNOA</a>
                 served by
-                <a href="http://www.ign.es">IGN</a></div>
+                <a href="//www.ign.es">IGN</a></div>
         </div>
     </body>
 </html>
