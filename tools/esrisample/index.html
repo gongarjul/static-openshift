@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+    <!-- This sample has been coded using these Esri samples:
+        https://developers.arcgis.com/javascript/jssamples/layers_wmtslayerresourceinfo.html
+        https://developers.arcgis.com/javascript/jssamples/framework_jquery.html
+        It demonstrates:
+        - How to add the IGN.search jQuery UI widget to search
+        Geographical Names (from NGBE), Zip Codes  and Addresses (from CartoCiudad).
+        The map is centered at the position of the option selected in the dropdown
+        input.
+        - How to add PNOA and IGN-base wmts services served by IGN-Spain.
+    
+        License: http://creativecommons.org/licenses/by-sa/3.0/es/ (CC BY-SA 3.0 ES)
+        Author: Julián González García (jgonzalezg at fomento dot es)
+    -->
+
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta name="viewport"e
+              content="width=device-width, initial-scale=1.0, maximum-scale=1.0:, user-scalable=no">
+
+
+
+        <meta name="apple-mobile-web-app-capable" content="yes">
+
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+        <meta name="mobile-web-app-capable" content="yes">
+        <title>Esri Map, WMTS and jQuery</title>
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.min.css">
+        <link rel="stylesheet" href="//js.arcgis.com/3.15/esri/css/esri.css">
+        <!-- css required for a basic style it will be partially overriden at the
+            end of the next style tag -->
+        <link rel="stylesheet" href="http://componentes.ign.es/NucleoVisualizador/css/ApiVis-main.css">
+        <style>
+            html, body {
+                padding: 0;
+                margin: 0;
+                width: 100%;
+                height: 100%;
+                font-size: 1em;
+                font-family: Roboto, "Helvetica Neue", Verdana, Geneva, Arial, Helvetica, sans-serif;
+            }
+
+            #map {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                z-index: 1;
+            }
+
+            #citationInfo {
+                position: absolute;
+                color: black;
+                font-weight: bold;
+                font-size: 12pt;
+                left: 10px;
+                bottom: 10px;
+                z-index: 999;
+            }            
+
+            .simpleInfoWindow, .simpleInfoWindow .title {
+                border-color: #5C9CFF;
+            }
+
+            .simpleInfoWindow .title {
+                font-weight: bold;
+            }            
+
+            .ui-header {
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 1.875em;
+                color: #FFFFFF;
+                background-color: #67656c;
+                padding: 0.625em 0 0 0.625em;
+                border-radius: 0.3125em 0.3125em 0 0;
+                border-bottom-color: #FFFFFF;
+                border-bottom-width: 0.3125em;
+            }
+
+            .ui-content {
+                color: #343434;
+                background-color: #fff;
+                padding: 0.625em 0.625em;
+                border-radius: 0 0 0.3125em 0.3125em;
+            }
+
+            .ui-drop-shadow {
+                -webkit-box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+                -moz-box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+                box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+            }
+
+            .ui-state-default,
+            .ui-widget-content .ui-state-default,
+            .ui-widget-header .ui-state-default {
+                border: 2px solid #67656c;
+            }
+
+            .ui-widget-content {
+                border: 2px solid #67656c;
+                color: #555555;
+            }
+
+            /* location and style of the input */
+            /* position of the container */
+            #ign_search {
+                position: absolute;
+                left: 72px;
+                top: 20px;
+                z-index: 30;
+            }
+            /* override the basic style of the input */
+            #busquedasIGN
+            {
+                border-style: inset;
+                border-width: 2px;
+            }
+        </style>
+
+        <script src="//js.arcgis.com/3.15compact/"></script>
+        <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+        <script src="//code.jquery.com/ui/1.11.1/jquery-ui.min.js"></script>
+        <script>
+            var map;
+
+            require([
+                "dojo/dom",
+                "dojo/on",
+                "esri/Color",
+                "esri/config",
+                "esri/geometry/Point",
+                "esri/map",
+                "esri/symbols/SimpleFillSymbol",
+                "esri/symbols/SimpleLineSymbol",
+                "esri/layers/WMTSLayer",
+                "esri/layers/WMTSLayerInfo",
+                "esri/geometry/Extent",
+                "esri/layers/TileInfo",
+                "esri/SpatialReference",
+                "dojo/domReady!"
+            ],
+                    function (dom, on, Color, esriConfig, Point, Map, SimpleFillSymbol, SimpleLineSymbol,
+                            WMTSLayer, WMTSLayerInfo, Extent, TileInfo, SpatialReference) {
+
+                        var zoomSymbol = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID,
+                                new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
+                                        new Color([20, 156, 255]), 1), new Color([141, 185, 219, 0.3]));
+
+                        esriConfig.defaults.map.zoomSymbol = zoomSymbol.toJson();
+
+                        // the extent of the map is set equal to the extent of the
+                        // wmts service
+                        var bounds = new Extent({
+                            "xmin": -18.162, "ymin": 21.899, "xmax": 6.289, "ymax": 45.286,
+                            "spatialReference": {"wkid": 4326}
+                        });
+                        map = new Map("map", {
+                            extent: bounds
+                        });
+
+                        on(map, "load", function () {
+                            console.log("Map load event");
+                            // Hook up jQuery
+                            $(document).ready(jQueryReady);
+                        });
+
+                        function jQueryReady() {
+                            // Load widget definition. After some attempts to 
+                            // import the widget definition this way seems to be
+                            // working well. wicket is a dependency of IGN.search
+                            // widget
+                            $.getScript("http://componentes.ign.es/NucleoVisualizador/js/wicket.js");
+                            $.getScript("http://componentes.ign.es/NucleoVisualizador/IGN_search.js", function () {
+                                // Get an instance
+                                $('#ign_search').search({
+                                    // Basic options, more on documentation
+                                    "minLength": 3, // 3 characters are needed to begin a search of candidates
+                                    "selected": function (event, data) {
+                                        // callback called when the user selects an option
+                                        // a geoJSON feature collection is returned in data
+                                        var coordinates;
+                                        // The geometry type of Geographical Names
+                                        // and Adresses is Point -> use coordinates
+                                        // attribute of geoJSON geometry directly
+                                        // Others -> this sample use the first 
+                                        // array of positions. See geoJSON 
+                                        // specification for more info.
+                                        if(data.features[0].geometry.type === 'Point'){
+                                            coordinates = data.features[0].geometry.coordinates;
+                                        }else{
+                                            coordinates = new Array();
+                                            $.each(data.features[0].geometry.coordinates[0], function(indexInArray, value){
+                                                coordinates.push(value[0]);
+                                                coordinates.push(value[1]);
+                                            });
+                                        }
+                                        // it would be desirable to plot the geoJSON
+                                        // featureCollection but it is not the
+                                        // scope of this sample
+                                        map.centerAndZoom(coordinates, 10);
+                                    }
+                                });
+                            });
+                        }
+
+                        // The PNOA wmts service has 20 tilematrix. Ten are set 
+                        // as the original ESRI's wmts sample
+                        var tileInfo = new TileInfo({
+                            "dpi": 90.71428571428571,
+                            "format": "image/jpeg",
+                            "compressionQuality": 0,
+                            "spatialReference": new SpatialReference({
+                                "wkid": 4326
+                            }),
+                            "rows": 256,
+                            "cols": 256,
+                            "origin": {
+                                "x": -180,
+                                "y": 90
+                            },
+                            "lods": [{
+                                    "level": "EPSG:4326:0",
+                                    "scale": 279541132.0143589,
+                                    "resolution": 0.7039144025535298
+                                }, {
+                                    "level": "EPSG:4326:1",
+                                    "scale": 139770566.00717944,
+                                    "resolution": 0.3519572012767649
+                                }, {
+                                    "level": "EPSG:4326:2",
+                                    "scale": 69885283.00358972,
+                                    "resolution": 0.17597860063838244
+                                }, {
+                                    "level": "EPSG:4326:3",
+                                    "scale": 34942641.50179486,
+                                    "resolution": 0.08798930031919122
+                                }, {
+                                    "level": "EPSG:4326:4",
+                                    "scale": 17471320.75089743,
+                                    "resolution": 0.04399465015959561
+                                }, {
+                                    "level": "EPSG:4326:5",
+                                    "scale": 8735660.375448715,
+                                    "resolution": 0.021997325079797805
+                                }, {
+                                    "level": "EPSG:4326:6",
+                                    "scale": 4367830.1877243575,
+                                    "resolution": 0.010998662539898903
+                                }, {
+                                    "level": "EPSG:4326:7",
+                                    "scale": 2183915.0938621787,
+                                    "resolution": 0.005499331269949451
+                                }, {
+                                    "level": "EPSG:4326:8",
+                                    "scale": 1091957.5469310894,
+                                    "resolution": 0.0027496656349747257
+                                }, {
+                                    "level": "EPSG:4326:9",
+                                    "scale": 545978.7734655447,
+                                    "resolution": 0.0013748328174873628
+                                }]
+                        });
+                        var tileExtent = new Extent(-179.99999, -89.99999, 179.99999, 89.99999, new SpatialReference({
+                            wkid: 4326
+                        }));
+
+                        var layerInfo1 = new WMTSLayerInfo({
+                            tileInfo: tileInfo,
+                            fullExtent: tileExtent,
+                            initialExtent: tileExtent,
+                            identifier: "IGNBaseOrto",
+                            tileMatrixSet: "EPSG:4326",
+                            format: "png",
+                            style: "_null"
+                        });
+
+                        var layerInfo2 = new WMTSLayerInfo({
+                            tileInfo: tileInfo,
+                            fullExtent: tileExtent,
+                            initialExtent: tileExtent,
+                            identifier: "OI.OrthoimageCoverage",
+                            tileMatrixSet: "EPSG:4326",
+                            format: "jpeg",
+                            style: "_null"
+                        });
+
+                        var resourceInfo1 = {
+                            version: "1.0.0",
+                            layerInfos: [layerInfo1],
+                            copyright: "IGN España"
+                        };
+
+                        var resourceInfo2 = {
+                            version: "1.0.0",
+                            layerInfos: [layerInfo2],
+                            copyright: "IGN España"
+                        };
+
+                        var options1 = {
+                            serviceMode: "KVP",
+                            resourceInfo: resourceInfo1,
+                            layerInfo: layerInfo1
+                        };
+                        var options2 = {
+                            serviceMode: "KVP",
+                            resourceInfo: resourceInfo2,
+                            layerInfo: layerInfo2
+                        };
+
+                        wmtsLayers = [new WMTSLayer("http://www.ign.es/wmts/pnoa-ma", options2),
+                            new WMTSLayer("http://www.ign.es/wmts/ign-base", options1)
+
+                        ];
+
+                        map.addLayers(wmtsLayers);
+
+                    });
+        </script>
+    </head>
+    <body>
+        <!-- IGN.search widget container-->
+        <div id="ign_search"></div>
+        <div id="map">
+            <div id="citationInfo">        
+                <a href="http://www.ign.es/wmts/ign-base?request=GetCapabilities&amp;service=WMTS">IGN-base</a>
+                y
+                <a href="http://www.ign.es/wmts/pnoa-ma?request=GetCapabilities&amp;service=WMTS">PNOA</a>
+                served by
+                <a href="http://www.ign.es">IGN</a></div>
+        </div>
+    </body>
+</html>
